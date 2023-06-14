@@ -1,34 +1,54 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useRef, useState } from "react";
+import { youtube_parser } from "./utils";
+import axios from "axios";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const inputUrlRef = useRef();
+  const [urlResult, setUrlResult] = useState(null);
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    console.log(inputUrlRef.current.value)
+    const youtubeID = youtube_parser(inputUrlRef.current.value)
+    // console.log(youtubeID)
+
+    const options = {
+      method: 'get',
+      url: 'https://youtube-mp3.p.rapidapi.com/dl',
+      headers: {
+        'X-RapidAPI-Key': import.meta.env.VITE_RAPID_API_KEY,
+        'X-RapidAPI-Host': 'youtube-mp36.p.rapidapi.com'
+      },
+      params: {
+        id: youtubeID,
+      }
+    }
+
+    axios(options)
+      .then(res => setUrlResult(res.data.link))
+      .catch(err => console.error(err))
+    
+    inputUrlRef.current.value = ''
+  }
 
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
+      <div className='app'>
+       <span className='logo'>youtube2mp3</span>
+       <section className="content">
+        <h1 className="content_title">YouTube to MP3 Converter</h1>
+        <p className="content_description">
+          Transform YouTube videos into MP3s in just a few clicks!
         </p>
+        <form onClick={handleSubmit} className='form'>
+          <input ref={inputUrlRef} placeholder='Paste a YouTube URL link...' className='form_input' type="text" />
+          <button type='submit' className='form_button'>Search</button>
+        </form>
+
+        {urlResult  ? <a href={urlResult} target="_blank" rel="noreferrer" className='download_btn'>Download MP3</a> : ''}
+
+        
+       </section>
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
   )
 }
 
